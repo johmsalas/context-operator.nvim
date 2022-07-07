@@ -3,15 +3,31 @@ local M = {}
 local contextoperator = require('contextoperator.plugin.context')
 
 M.state = {
-  commandsByNamespace = {}
+  commands_counter = 0,
+  commands_by_namespace = {}
 }
 
 function M.register_commands(namespace, commands)
-  M.state.commandsByNamespace[namespace] = commands;
+  if M.state.commands_by_namespace[namespace] == nil then
+    M.state.commands_by_namespace[namespace] = {}
+  end
+  if type(commands) == 'table' and commands.verify == nil and commands.execute == nil then
+    for _, subcommands in ipairs(commands) do
+      M.register_commands(namespace, subcommands)
+    end
+  elseif commands.verify ~= nil and commands.execute ~= nil then
+    M.state.commands_counter = M.state.commands_counter + 1
+    M.state.commands_by_namespace[namespace][M.state.commands_counter] = commands;
+  end
 end
 
 function M.invoke_namespace_commands(namespace)
-  local commands = M.state.commandsByNamespace[namespace];
+  if M.state.commands_by_namespace[namespace] == nil then
+    print('Namespace "' .. namespace .. '" not registered')
+    return
+  end
+
+  local commands = M.state.commands_by_namespace[namespace];
   local context = contextoperator.build_context()
   local closest = {
     likeness = 0,
