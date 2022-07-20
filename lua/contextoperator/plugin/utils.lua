@@ -1,137 +1,5 @@
 local utils = {}
 
-function utils.get_current_word(opts, cursor_pos)
-
-  local initial_i = cursor_pos[3]
-  local line = vim.fn.getline(cursor_pos[2])
-
-  local char = line:sub(initial_i, initial_i)
-  if string.match(char, '[(){}[%]%.]') then
-    return {
-      word = char,
-      start_pos = {
-        cursor_pos[1],
-        cursor_pos[2],
-        initial_i,
-        cursor_pos[4],
-      },
-      end_pos = {
-        cursor_pos[1],
-        cursor_pos[2],
-        initial_i,
-        cursor_pos[4],
-      } }
-  end
-
-  return utils.get_current_ascii_word(opts, cursor_pos)
-end
-
-function utils.get_current_ascii_word(opts, cursor_pos)
-  local code_a = string.byte('a')
-  local code_z = string.byte('z')
-  local code_A = string.byte('A')
-  local code_Z = string.byte('Z')
-  local code_0 = string.byte('0')
-  local code_9 = string.byte('9')
-
-  opts = opts or {
-    includeInWords = { _ = '_' }
-  }
-
-  function Is_a_word_character(char)
-    local code = string.byte(char)
-
-    if code == nil then return false end
-
-    local result = (code >= code_a and code <= code_z)
-        or (code >= code_A and code <= code_Z)
-        or (code >= code_0 and code <= code_9)
-        or opts.includeInWords[char] ~= nil
-
-    -- vim.pretty_print({
-    --   code_a = code_a,
-    --   code_A = code_A,
-    --   code_b = code_z,
-    --   code_B = code_Z,
-    --   code_0 = code_0,
-    --   code_9 = code_9,
-    --   code = code,
-    --   char = char,
-    --   result = result,
-    -- })
-    return result
-  end
-
-  local initial_i = cursor_pos[3]
-  local start_pos = nil
-  local end_pos = nil
-  local i = initial_i
-  local line = vim.fn.getline(cursor_pos[2])
-  local n = line:len()
-
-  while i > 0 and i <= n and start_pos == nil do
-    if Is_a_word_character(line:sub(i, i)) then
-      if i <= initial_i then
-        i = i - 1
-        if not Is_a_word_character(string.sub(line, i, i)) then
-          start_pos = i + 1
-          end_pos = initial_i
-        end
-      else
-        start_pos = i
-        end_pos = i
-      end
-    else
-      i = i + 1
-    end
-  end
-
-  if start_pos == nil then return nil end
-
-  i = end_pos
-  while i < n do
-    i = i + 1
-    if Is_a_word_character(string.sub(line, i, i)) then
-      end_pos = i
-    else
-      break
-    end
-  end
-
-  return {
-    word = line:sub(start_pos, end_pos),
-    start_pos = {
-      cursor_pos[1],
-      cursor_pos[2],
-      start_pos,
-      cursor_pos[4],
-    },
-    end_pos = {
-      cursor_pos[1],
-      cursor_pos[2],
-      end_pos,
-      cursor_pos[4],
-    } }
-end
-
-function utils.get_region(vmode)
-  local sln, eln
-  if vmode:match("[vV]") then
-    sln = vim.api.nvim_buf_get_mark(0, "<")
-    eln = vim.api.nvim_buf_get_mark(0, ">")
-  else
-    sln = vim.api.nvim_buf_get_mark(0, "[")
-    eln = vim.api.nvim_buf_get_mark(0, "]")
-  end
-
-  return {
-    start_row = sln[1],
-    start_col = sln[2],
-    end_row = eln[1],
-    end_col = math.min(eln[2], vim.fn.getline(eln[1]):len() - 1),
-  }
-end
-
 function utils.nvim_buf_get_text(buffer, start_row, start_col, end_row, end_col)
   local lines = vim.api.nvim_buf_get_lines(buffer, start_row, end_row + 1, true)
 
@@ -141,11 +9,19 @@ function utils.nvim_buf_get_text(buffer, start_row, start_col, end_row, end_col)
   return lines
 end
 
+local callableTable = {
+  __call = function(self, ...)
+    return self.apply(...)
+  end
+}
+
 function utils.create_wrapped_method(desc, method)
-  return {
+  local wrapper = {
     desc = desc,
-    apply = method
+    apply = method,
   }
+  setmetatable(wrapper, callableTable)
+  return wrapper
 end
 
 function utils.get_default_register()
