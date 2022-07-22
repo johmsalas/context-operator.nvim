@@ -26,14 +26,26 @@ function M.register_commands(namespace, commandsOrFunc)
 end
 
 function M.register_objects(namespace, objectsOrFunc)
-  local objects = type(objectsOrFunc) == 'function' and objectsOrFunc() or objectsOrFunc
+  -- if (objectsOrFunc == nil) then return nil end
+
+  -- local objects = type(objectsOrFunc) == 'function'
+  --     and objectsOrFunc.type ~= nil and objectsOrFunc() or objectsOrFunc
+  local objects = objectsOrFunc
+
   if M.state.objects_by_namespace[namespace] == nil then
     M.state.objects_by_namespace[namespace] = {}
   end
+
   if type(objects) == 'table' and objects.verify == nil and objects.object == nil then
     for _, subobjects in ipairs(objects) do
       M.register_objects(namespace, subobjects)
     end
+  elseif type(objects) == 'function' then
+    M.state.objects_counter = M.state.objects_counter + 1
+    M.state.objects_by_namespace[namespace][M.state.objects_counter] = {
+      verify = function() return 1 end,
+      object = objects
+    };
   elseif objects.verify ~= nil and objects.object ~= nil then
     M.state.objects_counter = M.state.objects_counter + 1
     M.state.objects_by_namespace[namespace][M.state.objects_counter] = objects;
@@ -42,7 +54,7 @@ end
 
 function M.wrap_operator(trigger)
   M.state.operator_trigger = trigger
-  vim.api.nvim_feedkeys(trigger, 'n', false)
+  vim.api.nvim_feedkeys(trigger, 'ni', false)
 end
 
 function M.invoke_namespace_commands(namespace)

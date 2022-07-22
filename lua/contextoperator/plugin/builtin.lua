@@ -59,14 +59,17 @@ function M.current_word_is(expectedText)
 end
 
 function M.send_keys(keys, mode, escape_ks)
-  mode = mode or "m"
   escape_ks = escape_ks or false
 
   return function(context)
     local char = context.current_char
     local converted_keys = keys:gsub("{char}", char)
 
-    vim.api.nvim_feedkeys(converted_keys, mode, escape_ks)
+    if mode ~= nil then
+      vim.api.nvim_feedkeys(converted_keys, mode, escape_ks)
+    else
+      vim.cmd("normal! w")
+    end
   end
 end
 
