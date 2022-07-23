@@ -65,10 +65,14 @@ function M.send_keys(keys, mode, escape_ks)
     local char = context.current_char
     local converted_keys = keys:gsub("{char}", char)
 
+    if (escape_ks == false) then
+      converted_keys = vim.api.nvim_replace_termcodes(converted_keys, true, false, true)
+    end
+
     if mode ~= nil then
       vim.api.nvim_feedkeys(converted_keys, mode, escape_ks)
     else
-      vim.cmd("normal! w")
+      vim.cmd("normal! " .. keys)
     end
   end
 end
