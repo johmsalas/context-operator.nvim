@@ -49,6 +49,17 @@ function M.char_is_in(expectedCharsList)
   end
 end
 
+function M.filetype_is_in(expectedFiletype)
+  local dict = {}
+  for _, type in ipairs(expectedFiletype) do
+    dict[type] = type
+  end
+  return function(context)
+    if dict[context.filetype] ~= nil then return 1 end
+    return 0
+  end
+end
+
 function M.current_word_is(expectedText)
   return function(context)
     if context.current_word == nil then return 0 end
@@ -117,21 +128,39 @@ function M.toggle_brackets()
   return {
     {
       verify = M.current_char_is('{'),
-      execute = M.send_keys('clr{['),
+      execute = M.send_keys('clr{[', 'm'),
     },
     {
       verify = M.current_char_is('['),
-      execute = M.send_keys('clr[{'),
+      execute = M.send_keys('clr[{', 'm'),
     },
     {
       verify = M.current_char_is('}'),
-      execute = M.send_keys('clr{['),
+      execute = M.send_keys('clr{[', 'm'),
     },
     {
       verify = M.current_char_is(']'),
-      execute = M.send_keys('clr[{'),
+      execute = M.send_keys('clr[{', 'm'),
     }
   }
+end
+
+function M.toggle_quotes(quotes)
+  local changes = {}
+
+  for i = 1, #quotes, 1 do
+    local a = quotes[i]
+    local b = (i == #quotes) and quotes[1] or quotes[i + 1]
+
+    table.insert(changes, {
+      verify = M.current_char_is(a),
+      execute = M.send_keys('clr' .. a .. b, 'm'),
+    })
+  end
+
+  return function()
+    return changes
+  end
 end
 
 return M

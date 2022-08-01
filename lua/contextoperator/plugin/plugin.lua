@@ -54,7 +54,14 @@ end
 
 function M.wrap_operator(trigger)
   M.state.operator_trigger = trigger
-  vim.api.nvim_feedkeys(trigger, 'ni', false)
+  vim.api.nvim_feedkeys(trigger, 'in', false)
+end
+
+function M.run_wrapped_operator(obj)
+  return function()
+    local trigger = M.state.operator_trigger
+    vim.api.nvim_feedkeys(trigger .. obj, 'm', false)
+  end
 end
 
 function M.invoke_namespace_commands(namespace)
@@ -64,7 +71,7 @@ function M.invoke_namespace_commands(namespace)
   end
 
   local commands = M.state.commands_by_namespace[namespace];
-  local context = contextoperator.build_context()
+  local context = contextoperator.build_context(M.state)
   local closest = {
     likeness = 0,
     command = nil
@@ -115,8 +122,6 @@ function M.invoke_namespace_objects(namespace)
   if closest.likeness == 1 then
     closest.object.object(context);
   end
-
-  M.state.operator_trigger = nil
 end
 
 return M
