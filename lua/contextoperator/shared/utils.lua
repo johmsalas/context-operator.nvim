@@ -48,17 +48,6 @@ function utils.get_current_ascii_word(opts, cursor_pos)
         or (code >= code_0 and code <= code_9)
         or opts.includeInWords[char] ~= nil
 
-    -- vim.pretty_print({
-    --   code_a = code_a,
-    --   code_A = code_A,
-    --   code_b = code_z,
-    --   code_B = code_Z,
-    --   code_0 = code_0,
-    --   code_9 = code_9,
-    --   code = code,
-    --   char = char,
-    --   result = result,
-    -- })
     return result
   end
 

@@ -15,6 +15,7 @@ local M = {
     send_keys = builtin.send_keys,
     char_is_in = builtin.char_is_in,
     filetype_is_in = builtin.filetype_is_in,
+    restore_cursor_pos = builtin.restore_cursor_pos,
   },
   builtin = {
     validator = {

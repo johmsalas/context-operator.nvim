@@ -1,12 +1,12 @@
-local builtin = require('contextoperator.plugin.builtin')
-
 local M = {}
 
 function CreateTableFromItemsOrTables(items)
   if type(items) ~= 'table' then return { items } end
   local list = {}
   for _, item in ipairs(items) do
-    if type(item) == 'table' then
+    if type(item) == 'table'
+        and item.verify == nil
+        and item.execute == nil then
       for _, c in pairs(item) do
         table.insert(list, c)
       end
@@ -43,17 +43,17 @@ function M._when(comparator)
       local comparators = CreateTableFromItemsOrTables({ comparator })
       return M.verify(context, comparators)
     end,
-    object = function(context)
+    execute = function(context)
       Run_actions(actions, context)
     end
   }
 
-  setmetatable(when_api, M.callableObjectTable)
+  setmetatable(when_api, M.callableTable)
 
   return when_api
 end
 
-M.callableObjectTable = {
+M.callableTable = {
   __call = function(self, ...)
     for _, action in pairs(self.actions) do
       -- action(...)
@@ -66,8 +66,19 @@ function M.verify(context, comparators)
 
   if type(comparators) == 'table' then
     for _, c in pairs(comparators) do
-      if c(context) == 0 then
+      if type(c) == 'function' and c(context) == 0 then
         validity = 0
+      end
+      if type(c) == 'table' then
+        local or_validity = 0
+        for _, or_comparator in ipairs(c) do
+          if or_comparator(context) == 1 then
+            or_validity = 1
+          end
+        end
+        if or_validity == 0 then
+          validity = 0
+        end
       end
     end
   else
@@ -97,12 +108,12 @@ function M._if(comparator)
       local comparators = CreateTableFromItemsOrTables({ comparator })
       return M.verify(context, comparators)
     end,
-    object = function(context)
+    execute = function(context)
       Run_actions(actions, context)
     end
   }
 
-  setmetatable(if_api, M.callableObjectTable)
+  setmetatable(if_api, M.callableTable)
 
   return if_api
 end
@@ -121,7 +132,7 @@ function M._else(if_actions, else_actions, comparator)
     verify = function(context)
       return 1
     end,
-    object = function(context)
+    execute = function(context)
       local comparators = CreateTableFromItemsOrTables({ comparator })
       local result = M.verify(context, comparators)
       if result == 1 then
@@ -132,14 +143,23 @@ function M._else(if_actions, else_actions, comparator)
     end
   }
 
-  setmetatable(else_api, M.callableObjectTable)
+  setmetatable(else_api, M.callableTable)
 
   return else_api
 end
 
 function Run_actions(actions, context)
   for _, action in ipairs(actions) do
-    action(context)
+    if type(action) == 'function' then
+      action(context)
+    elseif type(action) == 'table'
+        and action.verify ~= nil
+        and action.execute ~= nil
+    then
+      if action.verify(context) == 1 then
+        action.execute(context)
+      end
+    end
   end
 end
 
@@ -159,12 +179,12 @@ function M._if_then(all_actions, comparator)
       local comparators = CreateTableFromItemsOrTables({ comparator })
       return M.verify(context, comparators)
     end,
-    object = function(context)
+    execute = function(context)
       Run_actions(actions, context)
     end
   }
 
-  setmetatable(then_api, M.callableObjectTable)
+  setmetatable(then_api, M.callableTable)
 
   return then_api
 end
@@ -180,14 +200,23 @@ function M._then(allActions, comparator)
     end,
     verify = function(context)
       local comparators = CreateTableFromItemsOrTables({ comparator })
+      local or_comparators = {}
+      for _, item in ipairs(actions) do
+        if type(item) == 'table' and item.verify ~= nil then
+          table.insert(or_comparators, item.verify)
+        end
+      end
+      if #or_comparators > 0 then
+        table.insert(comparators, or_comparators)
+      end
       return M.verify(context, comparators)
     end,
-    object = function(context)
+    execute = function(context)
       Run_actions(actions, context)
     end
   }
 
-  setmetatable(then_api, M.callableObjectTable)
+  setmetatable(then_api, M.callableTable)
 
   return then_api
 end

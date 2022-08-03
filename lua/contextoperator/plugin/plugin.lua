@@ -36,7 +36,7 @@ function M.register_objects(namespace, objectsOrFunc)
     M.state.objects_by_namespace[namespace] = {}
   end
 
-  if type(objects) == 'table' and objects.verify == nil and objects.object == nil then
+  if type(objects) == 'table' and objects.verify == nil and objects.execute == nil then
     for _, subobjects in ipairs(objects) do
       M.register_objects(namespace, subobjects)
     end
@@ -44,17 +44,19 @@ function M.register_objects(namespace, objectsOrFunc)
     M.state.objects_counter = M.state.objects_counter + 1
     M.state.objects_by_namespace[namespace][M.state.objects_counter] = {
       verify = function() return 1 end,
-      object = objects
+      execute = objects
     };
-  elseif objects.verify ~= nil and objects.object ~= nil then
+  elseif objects.verify ~= nil and objects.execute ~= nil then
     M.state.objects_counter = M.state.objects_counter + 1
     M.state.objects_by_namespace[namespace][M.state.objects_counter] = objects;
   end
 end
 
-function M.wrap_operator(trigger)
+function M.wrap_operator(trigger, count)
   M.state.operator_trigger = trigger
-  vim.api.nvim_feedkeys(trigger, 'in', false)
+  local count_prefix = count > 1 and count or ''
+
+  vim.api.nvim_feedkeys(count_prefix .. trigger, 'in', false)
 end
 
 function M.run_wrapped_operator(obj)
@@ -94,14 +96,16 @@ function M.invoke_namespace_commands(namespace)
   end
 end
 
-function M.invoke_namespace_objects(namespace)
+function M.invoke_namespace_objects(namespace, count)
   if M.state.objects_by_namespace[namespace] == nil then
     print('Namespace "' .. namespace .. '" not registered')
     return
   end
 
   local objects = M.state.objects_by_namespace[namespace];
-  local context = contextoperator.build_context(M.state)
+  local context = contextoperator.build_context(M.state, {
+    count = count
+  })
   local closest = {
     likeness = 0,
     object = nil
@@ -110,17 +114,17 @@ function M.invoke_namespace_objects(namespace)
   for _, object in ipairs(objects) do
     local likeness = object.verify(context)
     if likeness == 1 then
-      object.object(context);
+      object.execute(context);
       closest.likeness = 0
       break
     else
       closest.likeness = likeness;
-      closest.object = object;
+      closest.execute = object;
     end
   end
 
   if closest.likeness == 1 then
-    closest.object.object(context);
+    closest.object.execute(context);
   end
 end
 

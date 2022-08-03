@@ -1,5 +1,15 @@
 local M = {}
 
+function M.restore_cursor_pos()
+  return function(context)
+    local cursor_pos = context.cursor_pos
+    vim.schedule(function()
+      vim.fn.setpos(".", cursor_pos)
+    end)
+
+  end
+end
+
 function M.replace_current_word(newText)
   return function(context)
     local current_word = context.current_word
@@ -74,7 +84,8 @@ function M.send_keys(keys, mode, escape_ks)
 
   return function(context)
     local char = context.current_char
-    local converted_keys = keys:gsub("{char}", char)
+    local count = context.count > 0 and context.count or ''
+    local converted_keys = keys:gsub("{char}", char):gsub("{count}", count)
 
     if (escape_ks == false) then
       converted_keys = vim.api.nvim_replace_termcodes(converted_keys, true, false, true)
@@ -83,7 +94,7 @@ function M.send_keys(keys, mode, escape_ks)
     if mode ~= nil then
       vim.api.nvim_feedkeys(converted_keys, mode, escape_ks)
     else
-      vim.cmd("normal! " .. keys)
+      vim.cmd("normal! " .. converted_keys)
     end
   end
 end
@@ -158,9 +169,7 @@ function M.toggle_quotes(quotes)
     })
   end
 
-  return function()
-    return changes
-  end
+  return changes
 end
 
 return M
