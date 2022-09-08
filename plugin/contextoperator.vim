@@ -15,3 +15,6 @@ function! ContextObjectFunction(namespace) range
 endfunction
 
 command! -range -nargs=1 ContextObject call ContextObjectFunction(<q-args>)
+
+command! -range ContextOperatorOpenTelescope <line1>,<line2>lua require("contextoperator").open_telescope_commands()
+

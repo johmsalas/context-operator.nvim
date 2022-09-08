@@ -10,7 +10,14 @@ M.state = {
   operator_trigger = nil,
 }
 
+function M.get_state()
+  return M.state
+end
+
 function M.register_commands(namespace, commandsOrFunc)
+  vim.pretty_print({
+    namespace = namespace
+  })
   local commands = type(commandsOrFunc) == 'function' and commandsOrFunc() or commandsOrFunc
   if M.state.commands_by_namespace[namespace] == nil then
     M.state.commands_by_namespace[namespace] = {}
@@ -23,6 +30,7 @@ function M.register_commands(namespace, commandsOrFunc)
     M.state.commands_counter = M.state.commands_counter + 1
     M.state.commands_by_namespace[namespace][M.state.commands_counter] = commands;
   end
+  vim.pretty_print(namespace)
 end
 
 function M.register_objects(namespace, objectsOrFunc)
@@ -127,6 +135,10 @@ function M.invoke_namespace_objects(namespace, count)
   if closest.likeness == 1 then
     closest.object.execute(context);
   end
+end
+
+function M.open_telescope_commands()
+  vim.cmd("Telescope contextoperator commands")
 end
 
 return M

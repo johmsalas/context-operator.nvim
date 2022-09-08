@@ -40,6 +40,7 @@ local M = {
   wrap_operator = plugin.wrap_operator,
   run_wrapped_operator = plugin.run_wrapped_operator,
   invoke_namespace_objects = plugin.invoke_namespace_objects,
+  open_telescope_commands = plugin.open_telescope_commands,
 }
 
 return M
