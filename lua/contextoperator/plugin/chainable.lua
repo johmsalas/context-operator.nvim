@@ -39,6 +39,9 @@ function M._when(comparator)
     _then = function(allActions)
       return M._then(allActions, comparator)
     end,
+    _attempt = function(allActions)
+      return M._then(allActions, comparator)
+    end,
     verify = function(context)
       local comparators = CreateTableFromItemsOrTables({ comparator })
       return M.verify(context, comparators)

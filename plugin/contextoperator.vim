@@ -6,7 +6,7 @@ function! ContextKeybindWrapOperatorFunction(trigger) range
   lua require("contextoperator").wrap_operator(vim.g.contextoperatortrigger, vim.g.contextoperatorcount )
 endfunction
 
-command! -range -nargs=1 ContextKeybindWrapOperator <line1>,<line2>call ContextKeybindWrapOperatorFunction(<q-args>)
+command! -nargs=1 ContextKeybindWrapOperator call ContextKeybindWrapOperatorFunction(<q-args>)
 
 function! ContextObjectFunction(namespace) range
   let g:contextoperatorcount = v:count
@@ -14,4 +14,4 @@ function! ContextObjectFunction(namespace) range
   lua require("contextoperator").invoke_namespace_objects(vim.g.contextoperatornamespace, vim.g.contextoperatorcount)
 endfunction
 
-command! -range -nargs=1 ContextObject <line1>,<line2>call ContextObjectFunction(<q-args>)
+command! -range -nargs=1 ContextObject call ContextObjectFunction(<q-args>)

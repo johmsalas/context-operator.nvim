@@ -16,6 +16,8 @@ local M = {
     char_is_in = builtin.char_is_in,
     filetype_is_in = builtin.filetype_is_in,
     restore_cursor_pos = builtin.restore_cursor_pos,
+    replace_word = builtin.replace_word,
+    cycle_words = builtin.cycle_words,
   },
   builtin = {
     validator = {

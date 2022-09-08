@@ -55,8 +55,9 @@ end
 function M.wrap_operator(trigger, count)
   M.state.operator_trigger = trigger
   local count_prefix = count > 1 and count or ''
+  local keys = count_prefix .. trigger
 
-  vim.api.nvim_feedkeys(count_prefix .. trigger, 'in', false)
+  vim.api.nvim_feedkeys(keys, 'in', false)
 end
 
 function M.run_wrapped_operator(obj)

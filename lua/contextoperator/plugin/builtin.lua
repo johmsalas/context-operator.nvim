@@ -10,6 +10,19 @@ function M.restore_cursor_pos()
   end
 end
 
+function M.replace_word(old_text)
+  return {
+    with = function(new_text)
+      return {
+        {
+          verify = M.current_word_is(old_text),
+          execute = M.replace_current_word(new_text)
+        }
+      }
+    end
+  }
+end
+
 function M.replace_current_word(newText)
   return function(context)
     local current_word = context.current_word
@@ -166,6 +179,22 @@ function M.toggle_quotes(quotes)
     table.insert(changes, {
       verify = M.current_char_is(a),
       execute = M.send_keys('clr' .. a .. b, 'm'),
+    })
+  end
+
+  return changes
+end
+
+function M.cycle_words(words)
+  local changes = {}
+
+  for i = 1, #words, 1 do
+    local a = words[i]
+    local b = (i == #words) and words[1] or words[i + 1]
+
+    table.insert(changes, {
+      verify = M.current_word_is(a),
+      execute = M.replace_current_word(b),
     })
   end
 
