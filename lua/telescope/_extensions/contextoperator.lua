@@ -7,7 +7,6 @@ local function invoke_command(prompt_bufnr)
     actions.close(prompt_bufnr)
     local selection = action_state.get_selected_entry()
     local change = selection.value
-    vim.pretty_print(change)
   end
 end
 
@@ -20,7 +19,6 @@ local function telescope_context_operator_commands(opts)
 
   local results = {}
   local k = 1
-  vim.pretty_print(plugin.get_state().commands_by_namespace)
   for _, v in pairs(plugin.get_state().commands_by_namespace) do
     results[k] = v
     k = k + 1
