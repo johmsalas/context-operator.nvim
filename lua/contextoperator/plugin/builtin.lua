@@ -152,19 +152,31 @@ function M.toggle_brackets()
   return {
     {
       verify = M.current_char_is('{'),
-      execute = M.send_keys('clr{[', 'm'),
+      execute = function(context)
+        M.send_keys('clr{[', 'm')(context)
+        M.restore_cursor_pos()(context)
+      end
     },
     {
       verify = M.current_char_is('['),
-      execute = M.send_keys('clr[{', 'm'),
+      execute = function(context)
+        M.send_keys('clr[{', 'm')(context)
+        M.restore_cursor_pos()(context)
+      end
     },
     {
       verify = M.current_char_is('}'),
-      execute = M.send_keys('clr{[', 'm'),
+      execute = function(context)
+        M.send_keys('clr{[', 'm')(context)
+        M.restore_cursor_pos()(context)
+      end
     },
     {
       verify = M.current_char_is(']'),
-      execute = M.send_keys('clr[{', 'm'),
+      execute = function(context)
+        M.send_keys('clr[{', 'm')(context)
+        M.restore_cursor_pos()(context)
+      end
     }
   }
 end
@@ -178,7 +190,10 @@ function M.toggle_quotes(quotes)
 
     table.insert(changes, {
       verify = M.current_char_is(a),
-      execute = M.send_keys('clr' .. a .. b, 'm'),
+      execute = function(context)
+        M.send_keys('clr' .. a .. b, 'm')(context)
+        M.restore_cursor_pos()(context)
+      end
     })
   end
 
