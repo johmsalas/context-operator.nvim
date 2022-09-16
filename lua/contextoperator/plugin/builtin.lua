@@ -97,7 +97,7 @@ function M.send_keys(keys, mode, escape_ks)
 
   return function(context)
     local char = context.current_char
-    local count = context.count > 0 and context.count or ''
+    local count = (type(context.count) == 'number' and context.count > 0) and context.count or ''
     local converted_keys = keys:gsub("{char}", char):gsub("{count}", count)
 
     if (escape_ks == false) then
