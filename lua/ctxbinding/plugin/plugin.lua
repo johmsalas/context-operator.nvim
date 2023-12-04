@@ -1,6 +1,6 @@
 local M = {}
 
-local contextoperator = require('contextoperator.plugin.context')
+local ctxbinding = require("ctxbinding.plugin.context")
 
 M.state = {
   commands_counter = 0,
@@ -15,17 +15,17 @@ function M.get_state()
 end
 
 function M.register_commands(namespace, commandsOrFunc)
-  local commands = type(commandsOrFunc) == 'function' and commandsOrFunc() or commandsOrFunc
+  local commands = type(commandsOrFunc) == "function" and commandsOrFunc() or commandsOrFunc
   if M.state.commands_by_namespace[namespace] == nil then
     M.state.commands_by_namespace[namespace] = {}
   end
-  if type(commands) == 'table' and commands.verify == nil and commands.execute == nil then
+  if type(commands) == "table" and commands.verify == nil and commands.execute == nil then
     for _, subcommands in ipairs(commands) do
       M.register_commands(namespace, subcommands)
     end
   elseif commands.verify ~= nil and commands.execute ~= nil then
     M.state.commands_counter = M.state.commands_counter + 1
-    M.state.commands_by_namespace[namespace][M.state.commands_counter] = commands;
+    M.state.commands_by_namespace[namespace][M.state.commands_counter] = commands
   end
 end
 
@@ -40,34 +40,36 @@ function M.register_objects(namespace, objectsOrFunc)
     M.state.objects_by_namespace[namespace] = {}
   end
 
-  if type(objects) == 'table' and objects.verify == nil and objects.execute == nil then
+  if type(objects) == "table" and objects.verify == nil and objects.execute == nil then
     for _, subobjects in ipairs(objects) do
       M.register_objects(namespace, subobjects)
     end
-  elseif type(objects) == 'function' then
+  elseif type(objects) == "function" then
     M.state.objects_counter = M.state.objects_counter + 1
     M.state.objects_by_namespace[namespace][M.state.objects_counter] = {
-      verify = function() return 1 end,
-      execute = objects
-    };
+      verify = function()
+        return 1
+      end,
+      execute = objects,
+    }
   elseif objects.verify ~= nil and objects.execute ~= nil then
     M.state.objects_counter = M.state.objects_counter + 1
-    M.state.objects_by_namespace[namespace][M.state.objects_counter] = objects;
+    M.state.objects_by_namespace[namespace][M.state.objects_counter] = objects
   end
 end
 
 function M.wrap_operator(trigger, count)
   M.state.operator_trigger = trigger
-  local count_prefix = count > 1 and count or ''
+  local count_prefix = count > 1 and count or ""
   local keys = count_prefix .. trigger
 
-  vim.api.nvim_feedkeys(keys, 'in', false)
+  vim.api.nvim_feedkeys(keys, "in", false)
 end
 
 function M.run_wrapped_operator(obj)
   return function()
     local trigger = M.state.operator_trigger
-    vim.api.nvim_feedkeys(trigger .. obj, 'm', false)
+    vim.api.nvim_feedkeys(trigger .. obj, "m", false)
   end
 end
 
@@ -77,27 +79,27 @@ function M.invoke_namespace_commands(namespace)
     return
   end
 
-  local commands = M.state.commands_by_namespace[namespace];
-  local context = contextoperator.build_context(M.state)
+  local commands = M.state.commands_by_namespace[namespace]
+  local context = ctxbinding.build_context(M.state)
   local closest = {
     likeness = 0,
-    command = nil
-  };
+    command = nil,
+  }
 
   for _, command in ipairs(commands) do
     local likeness = command.verify(context)
     if likeness == 1 then
-      command.execute(context);
+      command.execute(context)
       closest.likeness = 0
       break
     else
-      closest.likeness = likeness;
-      closest.command = command;
+      closest.likeness = likeness
+      closest.command = command
     end
   end
 
   if closest.likeness == 1 then
-    closest.command.execute(context);
+    closest.command.execute(context)
   end
 end
 
@@ -107,34 +109,34 @@ function M.invoke_namespace_objects(namespace, count)
     return
   end
 
-  local objects = M.state.objects_by_namespace[namespace];
-  local context = contextoperator.build_context(M.state, {
-    count = count
+  local objects = M.state.objects_by_namespace[namespace]
+  local context = ctxbinding.build_context(M.state, {
+    count = count,
   })
   local closest = {
     likeness = 0,
-    object = nil
-  };
+    object = nil,
+  }
 
   for _, object in ipairs(objects) do
     local likeness = object.verify(context)
     if likeness == 1 then
-      object.execute(context);
+      object.execute(context)
       closest.likeness = 0
       break
     else
-      closest.likeness = likeness;
-      closest.execute = object;
+      closest.likeness = likeness
+      closest.execute = object
     end
   end
 
   if closest.likeness == 1 then
-    closest.object.execute(context);
+    closest.object.execute(context)
   end
 end
 
 function M.open_telescope_commands()
-  vim.cmd("Telescope contextoperator commands")
+  vim.cmd("Telescope ctxbinding commands")
 end
 
 return M
