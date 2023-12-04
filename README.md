@@ -59,7 +59,7 @@ co.register_commands('quick_change', {
   , fun.toggle_quotes({ '"', "'" })
 })
 
-vim.api.nvim_set_keymap('n', '<Leader>i', ':InvokeContextOperator quick_change<CR>', { desc = "Quick Change" })
+vim.api.nvim_set_keymap('n', '<Leader>i', ':InvokeCtxBinding quick_change<CR>', { desc = "Quick Change" })
 ```
 
 ## Project status

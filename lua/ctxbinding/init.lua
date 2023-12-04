@@ -1,6 +1,6 @@
-local plugin = require('contextoperator.plugin.plugin')
-local builtin = require('contextoperator.plugin.builtin')
-local chainable = require('contextoperator.plugin.chainable')
+local plugin = require("ctxbinding.plugin.plugin")
+local builtin = require("ctxbinding.plugin.builtin")
+local chainable = require("ctxbinding.plugin.chainable")
 
 local M = {
   lang = {
@@ -27,13 +27,13 @@ local M = {
     },
     command = {
       replace_current_word = builtin.replace_current_word,
-      send_keys = builtin.send_keys
+      send_keys = builtin.send_keys,
     },
     preset = {
       toggle_boolean = builtin.toggle_boolean,
       toggle_brackets = builtin.toggle_brackets,
       toggle_quotes = builtin.toggle_quotes,
-    }
+    },
   },
   register_commands = plugin.register_commands,
   register_objects = plugin.register_objects,
